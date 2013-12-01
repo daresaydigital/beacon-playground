@@ -8,16 +8,24 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import com.philips.lighting.hue.listener.PHLightListener;
+import com.philips.lighting.hue.sdk.PHHueSDK;
+import com.philips.lighting.model.PHBridge;
+import com.philips.lighting.model.PHHueError;
+import com.philips.lighting.model.PHLight;
+import com.philips.lighting.model.PHLightState;
 import com.radiusnetworks.ibeacon.IBeaconManager;
 
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Random;
 
-/**
- * 
- * @author dyoung
- *
- */
+
 public class MainActivity extends Activity  {
 	protected static final String TAG = "MainActivity";
+    private PHHueSDK phHueSDK;
+    private static final int MAX_HUE=65535;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +33,18 @@ public class MainActivity extends Activity  {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		verifyBluetooth();
+
+        phHueSDK = PHHueSDK.getInstance(getApplicationContext());
+        Button randomButton;
+        randomButton = (Button) findViewById(R.id.buttonRand);
+        randomButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                randomLights();
+            }
+
+        });
 		
 	}
 	public void onRangingClicked(View view) {
@@ -75,6 +95,37 @@ public class MainActivity extends Activity  {
 			
 		}
 		
-	}	
+	}
+
+    public void randomLights() {
+        PHBridge bridge = phHueSDK.getSelectedBridge();
+        List<PHLight> allLights = bridge.getResourceCache().getAllLights();
+        Random rand = new Random();
+
+        for (PHLight light : allLights) {
+            PHLightState lightState = new PHLightState();
+            lightState.setHue(rand.nextInt(MAX_HUE));
+            // To validate your lightstate is valid (before sending to the bridge, you can use:  (a null validState indicates a valid value
+            // String validState = lightState.validateState();
+            bridge.updateLightState(light, lightState, listener);
+            //  bridge.updateLightState(light, lightState);   // If no bridge response is required then use this simpler form.
+        }
+    }
+    // If you want to handle the response from the bridge, create a PHLightListener object.
+    PHLightListener listener = new PHLightListener() {
+
+        @Override
+        public void onSuccess() {
+        }
+
+        @Override
+        public void onStateUpdate(Hashtable<String, String> arg0, List<PHHueError> arg1) {
+            Log.w(TAG, "Light has updated");
+        }
+
+        @Override
+        public void onError(int arg0, String arg1) {
+        }
+    };
 
 }
