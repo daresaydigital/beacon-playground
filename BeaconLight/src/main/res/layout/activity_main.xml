@@ -27,5 +27,4 @@
         android:layout_below="@+id/monitor_button"
         android:text="@string/btn_random" android:paddingLeft="10dp" android:paddingRight="10dp"/>
     
-    
 </RelativeLayout>
