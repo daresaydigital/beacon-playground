@@ -27,12 +27,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.screeninteraction.beaconlight.RangingActivity"
-            android:label="@string/app_name" >
-            <intent-filter>
-            </intent-filter>
-        </activity>
-        <activity
             android:name="com.screeninteraction.beaconlight.MonitoringActivity"
             android:label="@string/app_name" >
             <intent-filter>
@@ -53,6 +47,11 @@
             android:name="com.screeninteraction.beaconlight.PHPushlinkActivity"
             android:label="@string/app_name" >
         </activity>
+
+        <service
+            android:enabled="true"
+            android:name="com.screeninteraction.beaconlight.RangingService" >
+        </service>
 
         <service android:enabled="true"
                  android:exported="true"

@@ -10,7 +10,7 @@ import com.radiusnetworks.ibeacon.MonitorNotifier;
 import com.radiusnetworks.ibeacon.Region;
 
 public class MonitoringActivity extends Activity implements IBeaconConsumer {
-    protected static final String TAG = "RangingActivity";
+    protected static final String TAG = "MonitoringActivity";
     private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
 
     @Override

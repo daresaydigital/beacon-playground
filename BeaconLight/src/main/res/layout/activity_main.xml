@@ -10,21 +10,31 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView1"
 		android:onClick="onRangingClicked"
-        android:text="Ranging" />
-
-    <Button
-        android:id="@+id/monitor_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/range_button"
-		android:onClick="onMonitoringClicked"
-        android:text="Monitoring" />
+        android:text="Start monitoring" />
 
     <Button
         android:id="@+id/buttonRand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/monitor_button"
+        android:layout_below="@id/range_button"
         android:text="@string/btn_random" android:paddingLeft="10dp" android:paddingRight="10dp"/>
-    
+
+    <TextView
+        android:id="@+id/beacon_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonRand"/>
+
+    <TextView
+        android:id="@+id/light_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/beacon_status"/>
+
+    <TextView
+        android:id="@+id/region_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/light_status"/>
+
 </RelativeLayout>
