@@ -31,6 +31,7 @@ public class RangingService extends Service implements IBeaconConsumer {
     private PHHueSDK mPhHueSDK;
     private BeaconRegion mRegionState = BeaconRegion.OUTSIDE;
     private boolean mIsMonitoring;
+    private static final int MAX_HUE=65535;
 
     public enum BeaconRegion {
         INSIDE,
@@ -52,13 +53,13 @@ public class RangingService extends Service implements IBeaconConsumer {
                 }
                 if(beacon.getAccuracy() < 1.0d && mRegionState == BeaconRegion.OUTSIDE)
                 {
-                    updateLight(Color.GREEN);
+                    updateLight(MAX_HUE / 120);
                     mRegionState = BeaconRegion.INSIDE;
                     for(BeaconCallbacksListener l : mBeaconListeners) {
                         l.enteredRegion();
                     }
                 } else if(beacon.getAccuracy() >= 1.0d && mRegionState == BeaconRegion.INSIDE){
-                    updateLight(Color.RED);
+                    updateLight(0);
                     mRegionState = BeaconRegion.OUTSIDE;
                     for(BeaconCallbacksListener l : mBeaconListeners) {
                         l.leftRegion();
@@ -130,11 +131,13 @@ public class RangingService extends Service implements IBeaconConsumer {
     public void startListening(BeaconCallbacksListener listener) {
         mBeaconListeners.add(listener);
         iBeaconManager.bind(this);
+        mIsMonitoring = true;
     }
 
     public void stopListening(BeaconCallbacksListener listener) {
         mBeaconListeners.remove(listener);
         iBeaconManager.unBind(this);
+        mIsMonitoring = false;
     }
 
     public boolean isMonitoring() {
