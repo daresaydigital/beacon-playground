@@ -26,16 +26,17 @@ import java.util.List;
 
 public class RangingService extends Service implements IBeaconConsumer {
     protected static final String TAG = "RangingActivity";
+    private static final double RANGE_TRESHOLD = 0.05d;
     private IBeaconManager iBeaconManager = IBeaconManager.getInstanceForApplication(this);
     private final IBinder mBinder = new BeaconBinder();
     private PHHueSDK mPhHueSDK;
-    private BeaconRegion mRegionState = BeaconRegion.OUTSIDE;
+    private BeaconRegion mRegionState = BeaconRegion.UNKNOWN;
     private boolean mIsMonitoring;
     private static final int MAX_HUE=65535;
 
     public enum BeaconRegion {
         INSIDE,
-        OUTSIDE
+        UNKNOWN, OUTSIDE
     }
 
 
@@ -51,37 +52,64 @@ public class RangingService extends Service implements IBeaconConsumer {
                 for(BeaconCallbacksListener l : mBeaconListeners) {
                     l.beaconRegistered(beacon);
                 }
-                if(beacon.getAccuracy() < 1.0d && mRegionState == BeaconRegion.OUTSIDE)
+                if(beacon.getAccuracy() < RANGE_TRESHOLD && (mRegionState == BeaconRegion.OUTSIDE || mRegionState == BeaconRegion.UNKNOWN))
                 {
-                    updateLight(MAX_HUE / 120);
-                    mRegionState = BeaconRegion.INSIDE;
-                    for(BeaconCallbacksListener l : mBeaconListeners) {
-                        l.enteredRegion();
-                    }
-                } else if(beacon.getAccuracy() >= 1.0d && mRegionState == BeaconRegion.INSIDE){
-                    updateLight(0);
-                    mRegionState = BeaconRegion.OUTSIDE;
-                    for(BeaconCallbacksListener l : mBeaconListeners) {
-                        l.leftRegion();
-                    }
+                    reportEnteredRegion();
+                } else if(beacon.getAccuracy() >= RANGE_TRESHOLD && (mRegionState == BeaconRegion.INSIDE || mRegionState == BeaconRegion.UNKNOWN)){
+                    reportExitRegion();
                 }
             }
+            iBeaconManager.setMonitorNotifier(new MonitorNotifier() {
+                @Override
+                public void didEnterRegion(Region region) {
+                    reportEnteredRegion();
+                }
+
+                @Override
+                public void didExitRegion(Region region) {
+                    reportExitRegion();
+                }
+
+                @Override
+                public void didDetermineStateForRegion(int i, Region region) {
+
+                }
+            });
         }
 
         });
 
         try {
             iBeaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", "e314593b-5ff6-4079-ae89-5ec9dbae2cfd", null, null));
+            //iBeaconManager.startMonitoringBeaconsInRegion(new Region("myRangingUniqueId", "e314593b-5ff6-4079-ae89-5ec9dbae2cfd", null, null));
         } catch (RemoteException e) {   }
     }
 
-    private void updateLight(int color) {
+    private void reportExitRegion() {
+        updateLight(0 /*RED*/, 100, 200);
+        mRegionState = BeaconRegion.OUTSIDE;
+        for(BeaconCallbacksListener l : mBeaconListeners) {
+            l.leftRegion();
+        }
+    }
+
+    private void reportEnteredRegion() {
+        updateLight(25500 /*GREEN*/, 51, 250);
+        mRegionState = BeaconRegion.INSIDE;
+        for(BeaconCallbacksListener l : mBeaconListeners) {
+            l.enteredRegion();
+        }
+    }
+
+    private void updateLight(int hue, int brightness, int saturation) {
         PHBridge bridge = mPhHueSDK.getSelectedBridge();
         if(bridge != null) {
             List<PHLight> allLights = bridge.getResourceCache().getAllLights();
             for (PHLight light : allLights) {
                 PHLightState lightState = new PHLightState();
-                lightState.setHue(color);
+                lightState.setHue(hue);
+                lightState.setSaturation(saturation);
+                lightState.setBrightness(brightness);
                 // To validate your lightstate is valid (before sending to the bridge, you can use:  (a null validState indicates a valid value
                 // String validState = lightState.validateState();
                 bridge.updateLightState(light, lightState, listener);
@@ -93,11 +121,6 @@ public class RangingService extends Service implements IBeaconConsumer {
 
         @Override
         public void onSuccess() {
-
-        }
-
-        @Override
-        public void onStateUpdate(Hashtable<String, String> arg0, List<PHHueError> arg1) {
             Log.w(TAG, "Light has updated");
             for(BeaconCallbacksListener l : mBeaconListeners) {
                 l.lightUpdated(0);
@@ -105,9 +128,13 @@ public class RangingService extends Service implements IBeaconConsumer {
         }
 
         @Override
+        public void onStateUpdate(Hashtable<String, String> arg0, List<PHHueError> arg1) {
+        }
+
+        @Override
         public void onError(int arg0, String arg1) {
             for(BeaconCallbacksListener l : mBeaconListeners) {
-                l.lightUpdated(0);
+                l.lightFailed();
             }
         }
     };
@@ -135,6 +162,7 @@ public class RangingService extends Service implements IBeaconConsumer {
     }
 
     public void stopListening(BeaconCallbacksListener listener) {
+        mRegionState = BeaconRegion.UNKNOWN;
         mBeaconListeners.remove(listener);
         iBeaconManager.unBind(this);
         mIsMonitoring = false;

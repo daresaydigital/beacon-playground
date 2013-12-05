@@ -55,7 +55,6 @@ public class PHHomeActivity extends Activity implements OnItemClickListener {
         Log.w(TAG, "Listener Registered1.   Starting Search Manager.");
         // Register the PHSDKListener to receive callbacks from the bridge.
         phHueSDK.getNotificationManager().registerSDKListener(listener);
-
     }
 
     @Override

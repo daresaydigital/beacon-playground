@@ -19,8 +19,10 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.philips.lighting.hue.listener.PHLightListener;
+import com.philips.lighting.hue.sdk.PHAccessPoint;
 import com.philips.lighting.hue.sdk.PHBridgeSearchManager;
 import com.philips.lighting.hue.sdk.PHHueSDK;
+import com.philips.lighting.hue.sdk.data.BridgeHeader;
 import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHLight;
@@ -58,7 +60,7 @@ public class MainActivity extends Activity implements RangingService.BeaconCallb
             }
 
         });
-	}
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
